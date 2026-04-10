@@ -4,6 +4,7 @@ import { BottomNavBar } from './components/BottomNavBar';
 import { OutdatedPriceAlert } from './components/OutdatedPriceAlert';
 import { PriceUpdateModal } from './components/PriceUpdateModal';
 import { SuccessOverlay } from './components/SuccessOverlay';
+import heroBg from './assets/hero-bg.png';
 
 function App() {
   // Estado para el modal de precios
@@ -37,27 +38,40 @@ function App() {
   }).format(new Date());
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen bg-slate-50 font-sans pb-32">
       
-      {/* Cabecera Principal */}
-      <header className="bg-white px-6 pt-12 pb-6 shadow-sm sticky top-0 z-40 border-b border-slate-200">
-        <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">
-              Hola, Juan
-            </h1>
-            <p className="text-xl font-bold text-slate-500 capitalize flex items-center gap-2">
-              <Calendar size={20} strokeWidth={2.5} />
-              {today}
-            </p>
-          </div>
-          <div className="bg-blue-100 p-3 rounded-full text-blue-600">
-            <CloudSun size={32} strokeWidth={2.5} />
+      {/* Cabecera Principal con Imagen */}
+      <header className="relative bg-white shadow-sm z-40 border-b border-slate-200 overflow-hidden">
+        {/* Capa de Imagen de Fondo */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={heroBg} 
+            alt="Decoración de Jardín" 
+            className="w-full h-full object-cover opacity-20 object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
+        </div>
+
+        {/* Contenido de la Cabecera */}
+        <div className="relative z-10 px-6 pt-16 pb-6">
+          <div className="flex justify-between items-end">
+            <div>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">
+                Hola, Juan
+              </h1>
+              <p className="text-xl font-bold text-green-700 capitalize flex items-center gap-2">
+                <Calendar size={20} strokeWidth={2.5} />
+                {today}
+              </p>
+            </div>
+            <div className="bg-green-100 p-3 rounded-2xl text-green-700 shadow-sm border border-green-200 backdrop-blur-sm bg-opacity-80">
+              <CloudSun size={32} strokeWidth={2.5} />
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="px-5 pb-32">
+      <main className="px-5 pt-6">
         
         {/* Sección de Urgencias */}
         {hasOutdatedClient && (
@@ -80,7 +94,7 @@ function App() {
         {/* Tareas del Día */}
         <section>
           <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
-            <CheckSquare size={28} className="text-blue-600" />
+            <CheckSquare size={28} className="text-green-600" />
             Para Hoy (2)
           </h2>
           
