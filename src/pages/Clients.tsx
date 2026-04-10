@@ -9,17 +9,23 @@ export const Clients = () => {
 
   // Mock data for clients
   const [clients, setClients] = useState([
-    { id: 1, name: 'Doña Rosa', address: 'Las Magnolias 123', price: 5000 },
-    { id: 2, name: 'Familia Gómez', address: 'Av. Siempreviva 742', price: 8000 },
-    { id: 3, name: 'Oficinas Centro', address: 'San Martín 1234', price: 45000 },
+    { id: 1, name: 'Doña Rosa', address: 'Las Magnolias 123', price: 5000, days: ['L', 'M', 'V'] },
+    { id: 2, name: 'Familia Gómez', address: 'Av. Siempreviva 742', price: 8000, days: ['X', 'S'] },
+    { id: 3, name: 'Oficinas Centro', address: 'San Martín 1234', price: 45000, days: ['L', 'M', 'X', 'J', 'V'] },
   ]);
 
-  const handleAddClient = (data: { name: string, basePrice: number }) => {
+  const handleAddClient = (data: { name: string, basePrice: number, address: string, days: string[] }) => {
     setIsAddModalOpen(false);
     setIsSuccessAnimating(true);
     
     setTimeout(() => {
-      setClients(prev => [...prev, { id: Date.now(), name: data.name, address: 'Sin dirección', price: data.basePrice }]);
+      setClients(prev => [...prev, { 
+        id: Date.now(), 
+        name: data.name, 
+        address: data.address, 
+        price: data.basePrice,
+        days: data.days
+      }]);
       setIsSuccessAnimating(false);
     }, 2000);
   };
@@ -65,10 +71,19 @@ export const Clients = () => {
           {clients.map(client => (
             <div key={client.id} className="bg-white border-2 border-slate-200 rounded-[24px] p-5 shadow-sm active:bg-slate-50 transition-colors">
               <h3 className="text-2xl font-black text-slate-900 mb-1">{client.name}</h3>
-              <p className="text-lg font-medium text-slate-600 mb-3">{client.address}</p>
+              <p className="text-lg font-medium text-slate-600 mb-4">{client.address}</p>
               
-              <div className="flex items-center gap-2">
-                <span className="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-lg">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex gap-1.5">
+                  {client.days.length > 0 ? client.days.map(d => (
+                    <span key={d} className="bg-blue-100 text-blue-700 font-black w-8 h-8 flex items-center justify-center rounded-lg border border-blue-200">
+                      {d}
+                    </span>
+                  )) : (
+                    <span className="text-sm font-bold text-slate-400 italic">Días sin asignar</span>
+                  )}
+                </div>
+                <span className="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-xl">
                   ${client.price.toLocaleString()} / mes
                 </span>
               </div>
