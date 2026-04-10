@@ -11,6 +11,7 @@ export interface Client {
   phone: string;
   price: number;
   days: string[];
+  lastPriceUpdate: string; // ISO Date YYYY-MM-DD
 }
 
 function App() {
@@ -30,10 +31,15 @@ function App() {
         
         let currentClients = clientsData;
         if (!Array.isArray(clientsData) || clientsData.length === 0) {
+          const threeMonthsAgo = new Date();
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0];
+          const todayStrOnly = new Date().toISOString().split('T')[0];
+
           currentClients = [
-            { id: 1, name: 'Doña Rosa', address: 'Las Magnolias 123', phone: '11 2233 4455', price: 5000, days: ['L', 'M', 'V'] },
-            { id: 2, name: 'Familia Gómez', address: 'Av. Siempreviva 742', phone: '11 3344 5566', price: 8000, days: ['X', 'S'] },
-            { id: 3, name: 'Oficinas Centro', address: 'San Martín 1234', phone: '11 4455 6677', price: 45000, days: ['L', 'M', 'X', 'J', 'V'] },
+            { id: 1, name: 'Doña Rosa', address: 'Las Magnolias 123', phone: '11 2233 4455', price: 5000, days: ['L', 'M', 'V'], lastPriceUpdate: threeMonthsAgoStr },
+            { id: 2, name: 'Familia Gómez', address: 'Av. Siempreviva 742', phone: '11 3344 5566', price: 8000, days: ['X', 'S'], lastPriceUpdate: todayStrOnly },
+            { id: 3, name: 'Oficinas Centro', address: 'San Martín 1234', phone: '11 4455 6677', price: 45000, days: ['L', 'M', 'X', 'J', 'V'], lastPriceUpdate: todayStrOnly },
           ];
           setClients(currentClients);
           persistClients(currentClients);
@@ -85,8 +91,12 @@ function App() {
     }
   };
 
-  const addClient = (newClient: Omit<Client, 'id'>) => {
-    const updated = [...clients, { ...newClient, id: Date.now() }];
+  const addClient = (newClient: Omit<Client, 'id' | 'lastPriceUpdate'>) => {
+    const updated = [...clients, { 
+      ...newClient, 
+      id: Date.now(),
+      lastPriceUpdate: new Date().toISOString().split('T')[0]
+    }];
     setClients(updated);
     persistClients(updated);
   };
@@ -101,7 +111,11 @@ function App() {
   };
 
   const updateClientPrice = (id: number, newPrice: number) => {
-    const updated = clients.map(c => c.id === id ? { ...c, price: newPrice } : c);
+    const updated = clients.map(c => c.id === id ? { 
+      ...c, 
+      price: newPrice,
+      lastPriceUpdate: new Date().toISOString().split('T')[0]
+    } : c);
     setClients(updated);
     persistClients(updated);
   };

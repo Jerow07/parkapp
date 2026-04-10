@@ -6,7 +6,7 @@ import type { Client } from '../App';
 
 interface ClientsProps {
   clients: Client[];
-  onAddClient: (data: Omit<Client, 'id'>) => void;
+  onAddClient: (data: Omit<Client, 'id' | 'lastPriceUpdate'>) => void;
   onDeleteClient: (id: number) => void;
 }
 
