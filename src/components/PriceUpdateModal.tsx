@@ -21,7 +21,7 @@ export const PriceUpdateModal = ({ isOpen, onClose, onConfirm, currentPrice }: P
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+    <div className="absolute inset-0 z-[100] flex flex-col justify-end overflow-hidden">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"

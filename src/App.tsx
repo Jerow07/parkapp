@@ -91,8 +91,8 @@ function App() {
   }).format(new Date());
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-32">
-      
+    <div className="min-h-screen bg-slate-200 flex justify-center pb-0 md:py-8">
+      <div className="w-full max-w-md min-h-screen md:min-h-[850px] bg-slate-50 font-sans pb-32 relative md:rounded-[40px] md:shadow-2xl overflow-hidden md:border-[8px] md:border-slate-800">
       {/* Cabecera Principal con Imagen */}
       <header className="relative bg-white shadow-sm z-40 border-b border-slate-200 overflow-hidden">
         {/* Capa de Imagen de Fondo */}
@@ -206,6 +206,7 @@ function App() {
 
       <SuccessOverlay show={isSuccessAnimating} />
 
+      </div>
     </div>
   );
 }
