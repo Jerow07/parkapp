@@ -8,6 +8,7 @@ export interface Client {
   id: number;
   name: string;
   address: string;
+  phone: string;
   price: number;
   days: string[];
 }
@@ -26,9 +27,9 @@ function App() {
         } else {
           // Si está vacío, ponemos los de ejemplo por defecto la primera vez
           const defaultClients = [
-            { id: 1, name: 'Doña Rosa', address: 'Las Magnolias 123', price: 5000, days: ['L', 'M', 'V'] },
-            { id: 2, name: 'Familia Gómez', address: 'Av. Siempreviva 742', price: 8000, days: ['X', 'S'] },
-            { id: 3, name: 'Oficinas Centro', address: 'San Martín 1234', price: 45000, days: ['L', 'M', 'X', 'J', 'V'] },
+            { id: 1, name: 'Doña Rosa', address: 'Las Magnolias 123', phone: '11 2233 4455', price: 5000, days: ['L', 'M', 'V'] },
+            { id: 2, name: 'Familia Gómez', address: 'Av. Siempreviva 742', phone: '11 3344 5566', price: 8000, days: ['X', 'S'] },
+            { id: 3, name: 'Oficinas Centro', address: 'San Martín 1234', phone: '11 4455 6677', price: 45000, days: ['L', 'M', 'X', 'J', 'V'] },
           ];
           setClients(defaultClients);
           persistClients(defaultClients);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckSquare, Calendar, CloudSun, Sun, Cloud, CloudRain, CloudFog, CloudLightning, Snowflake, Loader2 } from 'lucide-react';
+import { Plus, CheckSquare, Calendar, CloudSun, Sun, Cloud, CloudRain, CloudFog, CloudLightning, Snowflake, Loader2, Phone } from 'lucide-react';
 import { OutdatedPriceAlert } from '../components/OutdatedPriceAlert';
 import { PriceUpdateModal } from '../components/PriceUpdateModal';
 import { SuccessOverlay } from '../components/SuccessOverlay';
@@ -172,9 +172,18 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
                      Mantenimiento
                    </span>
                  </div>
-                 <p className="text-lg font-medium text-slate-600 mb-4">
+                 <p className="text-lg font-medium text-slate-600 mb-2">
                    {client.address}
                  </p>
+                 <div className="flex items-center gap-2 mb-4">
+                   <a 
+                     href={`tel:${client.phone}`}
+                     className="flex items-center gap-2 bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded-lg border border-slate-100 active:bg-slate-100 transition-colors"
+                   >
+                     <Phone size={16} className="text-blue-500" />
+                     {client.phone}
+                   </a>
+                 </div>
                  <div className="bg-slate-100 rounded-2xl p-4 flex justify-between items-center">
                    <span className="text-lg font-bold text-slate-500">A cobrar hoy:</span>
                    <span className="text-2xl font-black text-green-600">${client.price.toLocaleString()}</span>

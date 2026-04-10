@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Search, UserPlus, Trash2, AlertTriangle } from 'lucide-react';
+import { Users, Search, UserPlus, Trash2, AlertTriangle, Phone } from 'lucide-react';
 import { AddClientModal } from '../components/AddClientModal';
 import { SuccessOverlay } from '../components/SuccessOverlay';
 import type { Client } from '../App';
@@ -22,7 +22,7 @@ export const Clients = ({ clients, onAddClient, onDeleteClient }: ClientsProps) 
     client.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddClient = (data: { name: string, basePrice: number, address: string, days: string[] }) => {
+  const handleAddClient = (data: { name: string, basePrice: number, address: string, phone: string, days: string[] }) => {
     setIsAddModalOpen(false);
     setIsSuccessAnimating(true);
     
@@ -30,6 +30,7 @@ export const Clients = ({ clients, onAddClient, onDeleteClient }: ClientsProps) 
       onAddClient({ 
         name: data.name, 
         address: data.address, 
+        phone: data.phone,
         price: data.basePrice,
         days: data.days
       });
@@ -90,7 +91,17 @@ export const Clients = ({ clients, onAddClient, onDeleteClient }: ClientsProps) 
                   <Trash2 size={24} strokeWidth={2.5} />
                 </button>
               </div>
-              <p className="text-lg font-medium text-slate-600 mb-4">{client.address}</p>
+              <p className="text-lg font-medium text-slate-600 mb-2">{client.address}</p>
+              
+              <div className="flex items-center gap-2 mb-4">
+                <a 
+                  href={`tel:${client.phone}`}
+                  className="flex items-center gap-2 bg-slate-100 text-slate-700 font-bold px-4 py-2 rounded-xl active:bg-slate-200 transition-colors"
+                >
+                  <Phone size={18} className="text-blue-600" />
+                  {client.phone}
+                </a>
+              </div>
               
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex gap-1.5">

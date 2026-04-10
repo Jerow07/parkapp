@@ -4,13 +4,14 @@ import { X, UserPlus } from 'lucide-react';
 interface AddClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (data: { name: string, basePrice: number, address: string, days: string[] }) => void;
+  onConfirm: (data: { name: string, basePrice: number, address: string, phone: string, days: string[] }) => void;
 }
 
 export const AddClientModal = ({ isOpen, onClose, onConfirm }: AddClientModalProps) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   const WEEKDAYS = [
@@ -37,11 +38,13 @@ export const AddClientModal = ({ isOpen, onClose, onConfirm }: AddClientModalPro
         name, 
         basePrice: Number(price), 
         address: address.trim() || 'Sin dirección', 
+        phone: phone.trim() || 'Sin teléfono',
         days: selectedDays 
       });
       setName('');
       setPrice('');
       setAddress('');
+      setPhone('');
       setSelectedDays([]);
     }
   };
@@ -127,6 +130,19 @@ export const AddClientModal = ({ isOpen, onClose, onConfirm }: AddClientModalPro
                 )
               })}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-2 pl-2 mt-4">
+              Teléfono
+            </label>
+            <input 
+              type="tel" 
+              placeholder="Ej: 11 1234 5678"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full text-xl font-bold text-slate-900 bg-slate-50 border-4 border-slate-200 rounded-[20px] min-h-[64px] px-6 focus:outline-none focus:border-green-500 focus:bg-white transition-colors placeholder:text-slate-300"
+            />
           </div>
 
           <div>
