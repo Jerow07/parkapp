@@ -3,17 +3,21 @@ import { Plus, CheckSquare, Calendar, CloudSun, Sun, Cloud, CloudRain, CloudFog,
 import { OutdatedPriceAlert } from '../components/OutdatedPriceAlert';
 import { PriceUpdateModal } from '../components/PriceUpdateModal';
 import { SuccessOverlay } from '../components/SuccessOverlay';
+import { NewJobModal } from '../components/NewJobModal';
 import heroBg from '../assets/hero-bg.png';
 import type { Client } from '../App';
 
 interface HomeProps {
   clients: Client[];
+  extraJobIds: number[];
   onUpdatePrice: (id: number, newPrice: number) => void;
+  onAddExtraJob: (clientId: number) => void;
 }
 
-export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
-  // Estado para el modal de precios
+export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: HomeProps) => {
+  // Estados para modales
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
   const [isSuccessAnimating, setIsSuccessAnimating] = useState(false);
   
   // Cliente seleccionado para actualizar precio
@@ -23,11 +27,17 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
   const dayMap = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
   const currentDayCode = dayMap[new Date().getDay()];
 
-  // Filtrar clientes para hoy
-  const clientsForToday = clients.filter(c => c.days.includes(currentDayCode));
+  // --- LÓGICA DE TRABAJOS PARA HOY ---
+  // 1. Clientes por su día fijo
+  const fixedClients = clients.filter(c => c.days.includes(currentDayCode));
+  
+  // 2. Clientes asignados manualmente (extra)
+  const extraClients = clients.filter(c => extraJobIds.includes(c.id) && !fixedClients.some(fc => fc.id === c.id));
+
+  // 3. Lista final combinada
+  const allTodayClients = [...fixedClients, ...extraClients];
 
   // Detectar el primer cliente con precio desactualizado (mock: más de 5 meses)
-  // En una app real esto vendría de una lógica de fechas en la DB
   const outdatedClient = clients.find(c => c.id === 1 && c.price === 5000); 
 
   const handlePriceUpdate = (newPrice: number) => {
@@ -43,6 +53,12 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
     setTimeout(() => {
       setIsSuccessAnimating(false);
     }, 2500);
+  };
+
+  const handleAddExtraJob = (id: number) => {
+    onAddExtraJob(id);
+    setIsSuccessAnimating(true);
+    setTimeout(() => setIsSuccessAnimating(false), 2000);
   };
 
   // --- WIDGET DEL CLIMA ---
@@ -137,7 +153,7 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
         </div>
       </header>
 
-      <main className="px-5 pt-6">
+      <main className="px-5 pt-6 pb-20">
         {outdatedClient && (
           <OutdatedPriceAlert 
             clientName={outdatedClient.name}
@@ -151,7 +167,10 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
         )}
 
         <div className="mt-8 mb-10">
-          <button className="w-full min-h-[88px] bg-green-600 hover:bg-green-700 text-white rounded-[32px] text-2xl font-black uppercase tracking-widest shadow-xl shadow-green-600/20 transition-transform active:scale-95 flex items-center justify-center gap-3 border-4 border-green-500/30">
+          <button 
+            onClick={() => setIsNewJobModalOpen(true)}
+            className="w-full min-h-[88px] bg-green-600 hover:bg-green-700 text-white rounded-[32px] text-2xl font-black uppercase tracking-widest shadow-xl shadow-green-600/20 transition-transform active:scale-95 flex items-center justify-center gap-3 border-4 border-green-500/30"
+          >
             <Plus size={36} strokeWidth={3} />
             Nuevo Trabajo
           </button>
@@ -160,36 +179,44 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
         <section>
           <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
             <CheckSquare size={28} className="text-green-600" />
-            Para Hoy ({clientsForToday.length})
+            Para Hoy ({allTodayClients.length})
           </h2>
           
           <div className="space-y-4">
-             {clientsForToday.length > 0 ? clientsForToday.map(client => (
-               <div key={client.id} className="bg-white border-2 border-slate-200 rounded-[28px] p-6 shadow-md relative touch-target active:bg-slate-50 transition-colors">
-                 <div className="flex justify-between items-start mb-4">
-                   <h3 className="text-2xl font-black text-slate-900">{client.name}</h3>
-                   <span className="bg-blue-100 text-blue-700 font-black text-sm px-3 py-1 rounded-lg uppercase tracking-wider">
-                     Mantenimiento
-                   </span>
-                 </div>
-                 <p className="text-lg font-medium text-slate-600 mb-2">
-                   {client.address}
-                 </p>
-                 <div className="flex items-center gap-2 mb-4">
-                   <a 
-                     href={`tel:${client.phone}`}
-                     className="flex items-center gap-2 bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded-lg border border-slate-100 active:bg-slate-100 transition-colors"
-                   >
-                     <Phone size={16} className="text-blue-500" />
-                     {client.phone}
-                   </a>
-                 </div>
-                 <div className="bg-slate-100 rounded-2xl p-4 flex justify-between items-center">
-                   <span className="text-lg font-bold text-slate-500">A cobrar hoy:</span>
-                   <span className="text-2xl font-black text-green-600">${client.price.toLocaleString()}</span>
-                 </div>
-               </div>
-             )) : (
+             {allTodayClients.length > 0 ? allTodayClients.map(client => {
+               const isExtra = extraJobIds.includes(client.id);
+               return (
+                <div key={client.id} className="bg-white border-2 border-slate-200 rounded-[28px] p-6 shadow-md relative touch-target active:bg-slate-50 transition-colors overflow-hidden">
+                  {isExtra && (
+                    <div className="absolute top-0 right-0 bg-amber-100 text-amber-700 font-black text-[10px] px-3 py-1 rounded-bl-xl uppercase tracking-tighter">
+                      Extra
+                    </div>
+                  )}
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-2xl font-black text-slate-900">{client.name}</h3>
+                    <span className="bg-blue-100 text-blue-700 font-black text-sm px-3 py-1 rounded-lg uppercase tracking-wider">
+                      Mantenimiento
+                    </span>
+                  </div>
+                  <p className="text-lg font-medium text-slate-600 mb-2">
+                    {client.address}
+                  </p>
+                  <div className="flex items-center gap-2 mb-4">
+                    <a 
+                      href={`tel:${client.phone}`}
+                      className="flex items-center gap-2 bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded-lg border border-slate-100 active:bg-slate-100 transition-colors"
+                    >
+                      <Phone size={16} className="text-blue-500" />
+                      {client.phone}
+                    </a>
+                  </div>
+                  <div className="bg-slate-100 rounded-2xl p-4 flex justify-between items-center">
+                    <span className="text-lg font-bold text-slate-500">A cobrar hoy:</span>
+                    <span className="text-2xl font-black text-green-600">${client.price.toLocaleString()}</span>
+                  </div>
+                </div>
+               );
+             }) : (
                <div className="bg-slate-100 rounded-[28px] p-10 text-center border-2 border-dashed border-slate-300">
                  <p className="text-xl font-bold text-slate-400 italic">No tienes trabajos<br/>agendados para hoy.</p>
                </div>
@@ -206,6 +233,14 @@ export const Home = ({ clients, onUpdatePrice }: HomeProps) => {
         }}
         currentPrice={selectedClient?.price || 0}
         onConfirm={handlePriceUpdate}
+      />
+
+      <NewJobModal
+        isOpen={isNewJobModalOpen}
+        onClose={() => setIsNewJobModalOpen(false)}
+        clients={clients}
+        onConfirm={handleAddExtraJob}
+        alreadyScheduledIds={allTodayClients.map(c => c.id)}
       />
 
       <SuccessOverlay show={isSuccessAnimating} />
