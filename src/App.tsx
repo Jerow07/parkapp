@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, CheckSquare, Calendar, CloudSun } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, CheckSquare, Calendar, CloudSun, Sun, Cloud, CloudRain, CloudFog, CloudLightning, Snowflake, Loader2 } from 'lucide-react';
 import { BottomNavBar } from './components/BottomNavBar';
 import { OutdatedPriceAlert } from './components/OutdatedPriceAlert';
 import { PriceUpdateModal } from './components/PriceUpdateModal';
@@ -30,6 +30,59 @@ function App() {
       setHasOutdatedClient(false); // Ocultar tarjeta roja
     }, 2500);
   };
+
+  // --- WIDGET DEL CLIMA ---
+  const [weatherData, setWeatherData] = useState<{temp: number | string, code: number | null}>({ temp: '--', code: null });
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setIsLoadingWeather(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const data = await res.json();
+          if (data.current_weather) {
+            setWeatherData({
+              temp: Math.round(data.current_weather.temperature),
+              code: data.current_weather.weathercode
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching weather:", error);
+        } finally {
+          setIsLoadingWeather(false);
+        }
+      },
+      (error) => {
+        console.error("GPS Error:", error);
+        setIsLoadingWeather(false);
+      }
+    );
+  }, []);
+
+  // Mapeador de códigos Open-Meteo a Íconos Lucide
+  const renderWeatherIcon = () => {
+    if (isLoadingWeather) return <Loader2 size={32} strokeWidth={2.5} className="animate-spin text-green-600" />;
+    
+    const code = weatherData.code;
+    if (code === null) return <CloudSun size={32} strokeWidth={2.5} className="text-green-600 opacity-50" />; // Default / Error fallback
+
+    if (code === 0) return <Sun size={32} strokeWidth={2.5} className="text-orange-500" />;
+    if (code >= 1 && code <= 3) return <CloudSun size={32} strokeWidth={2.5} className="text-blue-500" />;
+    if (code === 45 || code === 48) return <CloudFog size={32} strokeWidth={2.5} className="text-slate-500" />;
+    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return <CloudRain size={32} strokeWidth={2.5} className="text-blue-600" />;
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return <Snowflake size={32} strokeWidth={2.5} className="text-cyan-500" />;
+    if (code >= 95 && code <= 99) return <CloudLightning size={32} strokeWidth={2.5} className="text-amber-500" />;
+    
+    return <Cloud size={32} strokeWidth={2.5} className="text-slate-500" />;
+  };
+  // ------------------------
 
   const today = new Intl.DateTimeFormat('es-AR', {
     weekday: 'long',
@@ -64,8 +117,13 @@ function App() {
                 {today}
               </p>
             </div>
-            <div className="bg-green-100 p-3 rounded-2xl text-green-700 shadow-sm border border-green-200 backdrop-blur-sm bg-opacity-80">
-              <CloudSun size={32} strokeWidth={2.5} />
+            <div className="flex flex-col items-center bg-white/80 p-2 md:p-3 rounded-2xl shadow-sm border border-slate-200/50 backdrop-blur-md min-w-[70px]">
+              {renderWeatherIcon()}
+              {!isLoadingWeather && weatherData.temp !== '--' && (
+                <span className="text-lg font-black text-slate-800 mt-0.5 tracking-tighter">
+                  {weatherData.temp}°
+                </span>
+              )}
             </div>
           </div>
         </div>
