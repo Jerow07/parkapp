@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, CheckCircle, TrendingUp } from 'lucide-react';
+import { X, TrendingUp } from 'lucide-react';
 
 interface PriceUpdateModalProps {
   isOpen: boolean;
