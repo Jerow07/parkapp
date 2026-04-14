@@ -154,7 +154,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newList)
       });
-    } catch (e) { /* silent fail for local vitest */ }
+    } catch { /* silent fail for local vitest */ }
   };
 
   const persistExtraJobs = async (ids: number[]) => {
