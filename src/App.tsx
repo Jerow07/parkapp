@@ -302,10 +302,10 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-200 flex justify-center pb-0 md:py-8">
-        <div className="w-full max-w-md min-h-screen md:min-h-[850px] bg-slate-50 font-sans pb-24 relative md:rounded-[40px] md:shadow-2xl overflow-hidden md:border-[8px] md:border-slate-800 flex flex-col">
+      <div className="h-[100dvh] bg-slate-200 flex justify-center overflow-hidden md:py-8">
+        <div className="w-full max-w-md h-full md:h-[850px] bg-slate-50 font-sans relative md:rounded-[40px] md:shadow-2xl overflow-hidden md:border-[8px] md:border-slate-800 flex flex-col">
           
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pb-safe-bottom">
             <Routes>
               <Route path="/" element={
                 <Home 

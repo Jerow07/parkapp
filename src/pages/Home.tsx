@@ -192,10 +192,10 @@ export const Home = ({ clients, workers, extraJobIds, onUpdatePrice, onAddExtraJ
 
   return (
     <>
-      <header className="relative bg-white shadow-sm z-40 border-b border-slate-200 overflow-hidden">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm overflow-hidden transition-all duration-300">
         <div className="absolute inset-0 z-0">
           <img src={heroBg} alt="Decoración" className="w-full h-full object-cover opacity-20 object-top" />
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/80 to-transparent" />
         </div>
 
         <div className="relative z-10 px-6 pt-16 pb-6">

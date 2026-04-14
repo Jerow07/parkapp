@@ -71,7 +71,7 @@ export const Tools = ({ tools, onAddTool, onUpdateTool, onDeleteTool }: ToolsPro
 
   return (
     <>
-      <header className="bg-white px-6 pt-16 pb-8 border-b border-slate-200">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl px-6 pt-16 pb-8 border-b border-slate-200 shadow-sm transition-all">
         <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Herramientas</h1>
         <p className="text-lg text-slate-500 font-medium">Controla tu equipo y maquinaria.</p>
       </header>
