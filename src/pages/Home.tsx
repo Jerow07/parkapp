@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckSquare, Calendar, CloudSun, Sun, Cloud, CloudRain, CloudFog, CloudLightning, Snowflake, Loader2, Phone, Bell, BellOff, Download } from 'lucide-react';
+import { Plus, CheckSquare, Calendar, Loader2, Phone, Bell, BellOff, Download } from 'lucide-react';
 import { OutdatedPriceAlert } from '../components/OutdatedPriceAlert';
 import { PriceUpdateModal } from '../components/PriceUpdateModal';
 import { SuccessOverlay } from '../components/SuccessOverlay';
 import { NewJobModal } from '../components/NewJobModal';
+import { WeatherModal } from '../components/WeatherModal';
+import { getWeatherIcon } from '../utils/weather';
 import heroBg from '../assets/hero-bg.png';
-import type { Client } from '../App';
+import type { Client, Worker } from '../App';
+import { Users } from 'lucide-react';
 
 interface HomeProps {
   clients: Client[];
+  workers: Worker[];
   extraJobIds: number[];
   onUpdatePrice: (id: number, newPrice: number) => void;
   onAddExtraJob: (clientId: number) => void;
@@ -16,14 +20,18 @@ interface HomeProps {
 
 const VAPID_PUBLIC_KEY = 'BEpDXiO8wVHx6cm66DzCvIiL96mDYqV0f_2WGEqBTeolr5x10UY0KX6TPRQgI9dh2HqHjOaJfwlgO7WQO6IzUoU';
 
-export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: HomeProps) => {
+export const Home = ({ clients, workers, extraJobIds, onUpdatePrice, onAddExtraJob }: HomeProps) => {
   // Estados para modales
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
+  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
   const [isSuccessAnimating, setIsSuccessAnimating] = useState(false);
   
   // Cliente seleccionado para actualizar precio
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  // --- LÓGICA DE CALENDARIO ---
+  const [viewDate, setViewDate] = useState(new Date());
 
   // --- LÓGICA DE NOTIFICACIONES ---
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -92,9 +100,14 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
 
   // --- LÓGICA DE TRABAJOS ---
   const dayMap = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-  const currentDayCode = dayMap[new Date().getDay()];
+  const currentDayCode = dayMap[viewDate.getDay()];
+  
+  const isToday = viewDate.toDateString() === new Date().toDateString();
+
   const fixedClients = clients.filter(c => c.days.includes(currentDayCode));
-  const extraClients = clients.filter(c => extraJobIds.includes(c.id) && !fixedClients.some(fc => fc.id === c.id));
+  const extraClients = isToday 
+    ? clients.filter(c => extraJobIds.includes(c.id) && !fixedClients.some(fc => fc.id === c.id))
+    : [];
   const allTodayClients = [...fixedClients, ...extraClients];
 
   // Detectar clientes con precio desactualizado (> 60 días)
@@ -127,6 +140,7 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
 
   // --- WIDGET DEL CLIMA ---
   const [weatherData, setWeatherData] = useState<{temp: number | string, code: number | null}>({ temp: '--', code: null });
+  const [dailyData, setDailyData] = useState<any>(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
 
   useEffect(() => {
@@ -139,13 +153,18 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
           const data = await res.json();
+          
           if (data.current_weather) {
             setWeatherData({
               temp: Math.round(data.current_weather.temperature),
               code: data.current_weather.weathercode
             });
+          }
+
+          if (data.daily) {
+            setDailyData(data.daily);
           }
         } catch (error) {
           console.error("Error fetching weather:", error);
@@ -162,22 +181,14 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
 
   const renderWeatherIcon = () => {
     if (isLoadingWeather) return <Loader2 size={32} strokeWidth={2.5} className="animate-spin text-green-600" />;
-    const code = weatherData.code;
-    if (code === null) return <CloudSun size={32} strokeWidth={2.5} className="text-green-600 opacity-50" />;
-    if (code === 0) return <Sun size={32} strokeWidth={2.5} className="text-orange-500" />;
-    if (code >= 1 && code <= 3) return <CloudSun size={32} strokeWidth={2.5} className="text-blue-500" />;
-    if (code === 45 || code === 48) return <CloudFog size={32} strokeWidth={2.5} className="text-slate-500" />;
-    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return <CloudRain size={32} strokeWidth={2.5} className="text-blue-600" />;
-    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return <Snowflake size={32} strokeWidth={2.5} className="text-cyan-500" />;
-    if (code >= 95 && code <= 99) return <CloudLightning size={32} strokeWidth={2.5} className="text-amber-500" />;
-    return <Cloud size={32} strokeWidth={2.5} className="text-slate-500" />;
+    return getWeatherIcon(weatherData.code);
   };
 
   const todayStr = new Intl.DateTimeFormat('es-AR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long'
-  }).format(new Date());
+  }).format(viewDate);
 
   return (
     <>
@@ -190,11 +201,35 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
         <div className="relative z-10 px-6 pt-16 pb-6">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Hola, Juan</h1>
-              <p className="text-xl font-bold text-green-700 capitalize flex items-center gap-2">
-                <Calendar size={20} strokeWidth={2.5} />
-                {todayStr}
-              </p>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Hola, Miguel</h1>
+              <div className="relative">
+                <button 
+                  onClick={() => (document.getElementById('date-picker') as HTMLInputElement)?.showPicker()}
+                  className={`text-xl font-bold capitalize flex items-center gap-2 transition-colors active:scale-95 origin-left ${isToday ? 'text-green-700' : 'text-blue-600'}`}
+                >
+                  <Calendar size={20} strokeWidth={2.5} />
+                  {todayStr}
+                </button>
+                <input 
+                  id="date-picker"
+                  type="date" 
+                  className="absolute opacity-0 pointer-events-none"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const [year, month, day] = e.target.value.split('-').map(Number);
+                      setViewDate(new Date(year, month - 1, day));
+                    }
+                  }}
+                />
+                {!isToday && (
+                  <button 
+                    onClick={() => setViewDate(new Date())}
+                    className="mt-1 text-xs font-black text-blue-500 uppercase tracking-widest flex items-center gap-1 hover:text-blue-700"
+                  >
+                    Regresar a hoy
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="flex gap-2 items-center">
@@ -218,14 +253,17 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
                 {isSubscribed ? <Bell size={24} strokeWidth={2.5} /> : <BellOff size={24} strokeWidth={2.5} />}
               </button>
 
-              <div className="flex flex-col items-center bg-white/80 p-2 rounded-2xl shadow-sm border border-slate-200/50 backdrop-blur-md min-w-[70px]">
+              <button 
+                onClick={() => setIsWeatherModalOpen(true)}
+                className="flex flex-col items-center bg-white/80 p-2 rounded-2xl shadow-sm border border-slate-200/50 backdrop-blur-md min-w-[70px] active:scale-90 transition-transform hover:bg-white"
+              >
                 {renderWeatherIcon()}
                 {!isLoadingWeather && weatherData.temp !== '--' && (
                   <span className="text-lg font-black text-slate-800 mt-0.5 tracking-tighter">
                     {weatherData.temp}°
                   </span>
                 )}
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -256,8 +294,8 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
 
         <section>
           <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
-            <CheckSquare size={28} className="text-green-600" />
-            Para Hoy ({allTodayClients.length})
+            <CheckSquare size={28} className={isToday ? "text-green-600" : "text-blue-600"} />
+            {isToday ? `Para Hoy (${allTodayClients.length})` : `Agenda del ${viewDate.toLocaleDateString('es-AR', { weekday: 'long' })}`}
           </h2>
           <div className="space-y-4">
              {allTodayClients.length > 0 ? allTodayClients.map(client => {
@@ -270,6 +308,24 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
                     <span className="bg-blue-100 text-blue-700 font-black text-sm px-3 py-1 rounded-lg uppercase tracking-wider">Mantenimiento</span>
                   </div>
                   <p className="text-lg font-medium text-slate-600 mb-2">{client.address}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {client.assignedWorkerIds && client.assignedWorkerIds.length > 0 ? (
+                      client.assignedWorkerIds.map(wid => {
+                        const worker = workers.find(w => w.id === wid);
+                        if (!worker) return null;
+                        return (
+                          <span key={wid} className="bg-amber-50 text-amber-700 text-[10px] font-black px-2 py-1 rounded-lg border border-amber-100 flex items-center gap-1">
+                             <Users size={12} />
+                             {worker.name}
+                          </span>
+                        );
+                      })
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-400 italic">Sin peones asignados</span>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2 mb-4">
                     <a href={`tel:${client.phone}`} className="flex items-center gap-2 bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded-lg border border-slate-100 active:bg-slate-100 transition-colors">
                       <Phone size={16} className="text-blue-500" />
@@ -277,7 +333,11 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
                     </a>
                   </div>
                   <div className="bg-slate-100 rounded-2xl p-4 flex justify-between items-center">
-                    <span className="text-lg font-bold text-slate-500">A cobrar hoy:</span>
+                    <span className="text-lg font-bold text-slate-500">
+                      {client.billingFrequency === 'quincenal' ? 'Cobro Quincenal:' : 
+                       client.billingFrequency === 'diario' ? 'Cobro por Día:' : 
+                       'Cobro Mensual:'}
+                    </span>
                     <span className="text-2xl font-black text-green-600">${client.price.toLocaleString()}</span>
                   </div>
                 </div>
@@ -301,6 +361,7 @@ export const Home = ({ clients, extraJobIds, onUpdatePrice, onAddExtraJob }: Hom
         onConfirm={handlePriceUpdate}
       />
       <NewJobModal isOpen={isNewJobModalOpen} onClose={() => setIsNewJobModalOpen(false)} clients={clients} onConfirm={handleAddExtraJob} alreadyScheduledIds={allTodayClients.map(c => c.id)} />
+      <WeatherModal isOpen={isWeatherModalOpen} onClose={() => setIsWeatherModalOpen(false)} dailyData={dailyData} />
       <SuccessOverlay show={isSuccessAnimating} />
     </>
   );
